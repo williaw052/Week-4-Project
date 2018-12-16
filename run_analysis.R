@@ -1,0 +1,43 @@
+setwd("C:/Users/Black - M/Desktop/UCI HAR Dataset")
+Y_Test <- read.table("./test/y_test.txt", header = F)
+Y_Train <- read.table("./train/y_train.txt", header = F)
+X_Test <- read.table("./test/x_test.txt", header = F)
+X_Train <- read.table("./train/x_train.txt", header = F)
+Test_Subject <- read.table("./test/subject_test.txt", header = F)
+Train_Subject <- read.table("./train/subject_train.txt", header = F)
+activity_labels <- read.table("./activity_labels.txt", header = F)
+Features <- read.table("./features.txt", header = F)
+X_Data <- rbind(X_Test, X_Train)
+Y_Data <- rbind(Y_Test, Y_Train)
+Subject_Data <- rbind(Test_Subject, Train_Subject)
+names(Y_Data) <- "ActivityN"
+names(activity_labels) <- c("ActivityN", "Activity")
+Activity <- left_join(Y_Data, activity_labels, "ActivityN")[, 2]
+names(Subject_Data) <- "Subject"
+names(X_Data) <- Features$V2
+DataSet <- cbind(Subject_Data, Activity)
+DataSet <- cbind(DataSet, X_Data)
+subXNames <- Features$V2[grep("mean\\(\\)|std\\(\\)", Features$V2)]
+DataNames <- c("Subject", "Activity", as.character(subXNames))
+DataSet <- subset(DataSet, select=DataNames)
+names(DataSet)<-gsub("^t", "time", names(DataSet))
+names(DataSet)<-gsub("^f", "frequency", names(DataSet))
+names(DataSet)<-gsub("Acc", "Accelerometer", names(DataSet))
+names(DataSet)<-gsub("Gyro", "Gyroscope", names(DataSet))
+names(DataSet)<-gsub("Mag", "Magnitude", names(DataSet))
+names(DataSet)<-gsub("BodyBody", "Body", names(DataSet))
+SecondDataSet<-aggregate(. ~Subject + Activity, DataSet, mean)
+SecondDataSet<-SecondDataSet[order(SecondDataSet$Subject,SecondDataSet$Activity),]
+write.table(SecondDataSet, file = "tidydata.txt",row.name=FALSE)
+
+View(Y_Test)
+View(X_Test)
+View(Y_Train)
+View(X_Train)
+View(Test_Subject)
+View(Train_Subject)
+View(activity_labels)
+View(Features)
+View(X_Data)
+View(Y_Data)
+View(Subject_Data)
